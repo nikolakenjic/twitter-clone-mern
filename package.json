@@ -1,0 +1,30 @@
+{
+  "name": "twitter-clone-mern",
+  "version": "1.0.0",
+  "main": "backend/server.js",
+  "type": "module",
+  "scripts": {
+    "start:dev": "nodemon backend/server.js",
+    "start:prod": "cross-env NODE_ENV=production node backend/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.7.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
