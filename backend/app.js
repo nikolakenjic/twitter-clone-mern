@@ -11,6 +11,7 @@ import { errorGlobal } from './controllers/errorController.js';
 // Import Routes
 import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import postRouter from './routes/postRoutes.js';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/posts', postRouter);
 
 console.log('PROCESS_ENV:', process.env.NODE_ENV);
 

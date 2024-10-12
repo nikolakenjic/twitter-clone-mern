@@ -111,8 +111,17 @@ export const followUnfollowUser = catchAsync(async (req, res, next) => {
 });
 
 export const updateUser = catchAsync(async (req, res, next) => {
-  const { fullName, email, username, currentPassword, newPassword, bio, link } =
-    req.body;
+  const {
+    fullName,
+    email,
+    username,
+    currentPassword,
+    newPassword,
+    bio,
+    link,
+    profileImg,
+    coverImg,
+  } = req.body;
 
   // let { profileImg, coverImg } = req.body;
 
@@ -146,13 +155,17 @@ export const updateUser = catchAsync(async (req, res, next) => {
     user.password = await hashedPassword(newPassword);
   }
 
+  // Profile and Cover img i wil add later***********************************************
+
+  // ********************************************************************************************
+
   user.fullName = fullName || user.fullName;
   user.email = email || user.email;
   user.username = username || user.username;
-  //   user.bio = bio || user.bio;
-  //   user.link = link || user.link;
-  //   user.profileImg = profileImg || user.profileImg;
-  //   user.coverImg = coverImg || user.coverImg;
+  user.bio = bio || user.bio;
+  user.link = link || user.link;
+  user.profileImg = profileImg || user.profileImg;
+  user.coverImg = coverImg || user.coverImg;
 
   user = await user.save();
 
@@ -166,6 +179,4 @@ export const updateUser = catchAsync(async (req, res, next) => {
       user,
     },
   });
-
-  //   res.send('updateUser');
 });
