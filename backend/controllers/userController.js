@@ -3,6 +3,10 @@ import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import Notification from '../models/notificationModel.js';
+import {
+  comparePasswords,
+  hashedPassword,
+} from '../utils/passwordEncrypted.js';
 
 export const getUserProfile = catchAsync(async (req, res, next) => {
   const { username } = req.params;
@@ -37,6 +41,11 @@ export const getSuggestedUser = catchAsync(async (req, res, next) => {
     {
       $sample: { size: 10 },
     },
+    {
+      $project: {
+        password: 0,
+      },
+    },
   ]);
 
   // Find All users who are not followed by me
@@ -47,12 +56,10 @@ export const getSuggestedUser = catchAsync(async (req, res, next) => {
   //   select 4 suggested user and prevent password to showing up
   const suggestedUsers = filteredUsers.slice(0, 4);
 
-  // Exclude password
-  suggestedUsers.forEach((user) => (user.password = undefined));
-
-  console.log(suggestedUsers);
-
-  res.send('suggested');
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    suggestedUsers,
+  });
 });
 
 export const followUnfollowUser = catchAsync(async (req, res, next) => {
@@ -103,6 +110,62 @@ export const followUnfollowUser = catchAsync(async (req, res, next) => {
   }
 });
 
-export const updateUser = (req, res, next) => {
-  res.send('updateUser');
-};
+export const updateUser = catchAsync(async (req, res, next) => {
+  const { fullName, email, username, currentPassword, newPassword, bio, link } =
+    req.body;
+
+  // let { profileImg, coverImg } = req.body;
+
+  const userId = req.user._id;
+
+  //  Find User
+  let user = await User.findById(userId).select('+password');
+
+  if (!user) {
+    return next(new AppError('User Not Found', StatusCodes.NOT_FOUND));
+  }
+
+  //   Check if password is there and finally update them
+  if (!newPassword && currentPassword) {
+    return next(
+      new AppError(
+        'Please provide both current password and new password',
+        StatusCodes.BAD_REQUEST
+      )
+    );
+  }
+
+  if (currentPassword && newPassword) {
+    const isMatch = await comparePasswords(currentPassword, user.password);
+    if (!isMatch) {
+      return next(
+        new AppError('Current password is incorrect', StatusCodes.BAD_REQUEST)
+      );
+    }
+
+    user.password = await hashedPassword(newPassword);
+  }
+
+  user.fullName = fullName || user.fullName;
+  user.email = email || user.email;
+  user.username = username || user.username;
+  //   user.bio = bio || user.bio;
+  //   user.link = link || user.link;
+  //   user.profileImg = profileImg || user.profileImg;
+  //   user.coverImg = coverImg || user.coverImg;
+
+  user = await user.save();
+
+  // password should be null in response
+  user.password = null;
+
+  //   Send response
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+
+  //   res.send('updateUser');
+});
