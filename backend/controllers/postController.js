@@ -42,6 +42,39 @@ export const createPost = catchAsync(async (req, res, next) => {
   });
 });
 
+export const deletePost = catchAsync(async (req, res, next) => {
+  const postId = req.params.id;
+  const userId = req.user._id.toString();
+
+  //   Find Post
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    return next(new AppError('Post Now Found', StatusCodes.NOT_FOUND));
+  }
+
+  //   Check if user has permission to delete post
+  if (post.user.toString() !== userId) {
+    return next(
+      new AppError(
+        'You are not authorized to delete this post',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  }
+
+  //   Check if there is Img in AWs or cloudinay (that later)
+  if (post.img) {
+    console.log('Delete img from img server');
+  }
+
+  // Delete Post
+  await Post.findByIdAndDelete(postId);
+  res
+    .status(StatusCodes.OK)
+    .json({ status: 'success', message: 'Post deleted successfully' });
+});
+
 export const getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
@@ -76,8 +109,4 @@ export const likeUnlikePost = (req, res, next) => {
 
 export const commentOnPost = (req, res, next) => {
   res.send('commentOnPost');
-};
-
-export const deletePost = (req, res, next) => {
-  res.send('deletePost');
 };
