@@ -48,7 +48,7 @@ export const login = catchAsync(async (req, res, next) => {
     );
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+password');
 
   const isValidUser = user && (await comparePasswords(password, user.password));
 
