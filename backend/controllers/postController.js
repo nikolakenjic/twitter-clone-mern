@@ -166,14 +166,74 @@ export const likeUnlikePost = catchAsync(async (req, res, next) => {
   }
 });
 
-export const getFollowingPosts = (req, res, next) => {
-  res.send('getFollowingPosts');
-};
+export const getLikedPosts = catchAsync(async (req, res, next) => {
+  const userId = req.params.id;
 
-export const getLikedPosts = (req, res, next) => {
-  res.send('getLikedPosts');
-};
+  const user = await User.findById(userId);
 
-export const getUserPosts = (req, res, next) => {
-  res.send('getUserPosts');
-};
+  if (!user) {
+    return next(new AppError('User Now Found', StatusCodes.NOT_FOUND));
+  }
+
+  const likedPosts = await Post.find({
+    _id: { $in: user.likedPosts },
+  })
+    .populate({
+      path: 'user',
+      select: '-password',
+    })
+    .populate({
+      path: 'comments.user',
+      select: '-password',
+    });
+
+  res.status(StatusCodes.OK).json({ status: 'success', likedPosts });
+});
+
+export const getFollowingPosts = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return next(new AppError('User Now Found', StatusCodes.NOT_FOUND));
+  }
+
+  const following = user.following;
+
+  const feedPosts = await Post.find({ user: { $in: following } })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: 'user',
+      select: '-password',
+    })
+    .populate({
+      path: 'comments.user',
+      select: '-password',
+    });
+
+  res.status(StatusCodes.OK).json({ status: 'success', feedPosts });
+});
+
+export const getUserPosts = catchAsync(async (req, res, next) => {
+  const { username } = req.params;
+
+  const user = await User.findOne({ username });
+
+  if (!user) {
+    return next(new AppError('User Now Found', StatusCodes.NOT_FOUND));
+  }
+
+  const posts = await Post.find({ user: user._id })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: 'user',
+      select: '-password',
+    })
+    .populate({
+      path: 'comments.user',
+      select: '-password',
+    });
+
+  res.status(StatusCodes.OK).json({ status: 'success', posts });
+});
