@@ -19,7 +19,7 @@ router.route('/likes/:id').get(getLikedPosts);
 router.route('/user/:username').get(getUserPosts);
 
 router.route('/create').post(protectRoute, createPost);
-router.route('/like/:id').post(likeUnlikePost);
+router.route('/like/:postId').post(protectRoute, likeUnlikePost);
 router.route('/comment/:postId').post(protectRoute, commentOnPost);
 router.route('/:postId').delete(protectRoute, deletePost);
 

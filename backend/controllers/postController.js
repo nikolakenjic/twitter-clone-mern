@@ -3,6 +3,7 @@ import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import Post from '../models/postModel.js';
+import Notification from '../models/notificationModel.js';
 
 export const createPost = catchAsync(async (req, res, next) => {
   const { text, img } = req.body;
@@ -119,6 +120,52 @@ export const commentOnPost = catchAsync(async (req, res, next) => {
   });
 });
 
+export const likeUnlikePost = catchAsync(async (req, res, next) => {
+  const { postId } = req.params;
+  const userId = req.user._id;
+
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    return next(new AppError('Post Now Found', StatusCodes.NOT_FOUND));
+  }
+
+  const userLikedPost = post.likes.includes(userId);
+
+  if (userLikedPost) {
+    // Unlike Post
+    await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
+    await User.updateOne({ _id: userId }, { $pull: { likedPosts: postId } });
+
+    const updateLikes = post.likes.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+
+    res
+      .status(StatusCodes.OK)
+      .json({ status: 'success', message: 'Unlike!', updateLikes });
+  } else {
+    // Like Post
+    post.likes.push(userId);
+    await User.updateOne({ _id: userId }, { $push: { likedPosts: postId } });
+
+    await post.save();
+
+    // Send notification to the user
+    const newNotification = new Notification({
+      type: 'like',
+      from: userId,
+      to: post.user,
+    });
+    await newNotification.save();
+
+    const updateLikes = post.likes;
+    res
+      .status(StatusCodes.OK)
+      .json({ status: 'success', message: 'Like!', updateLikes });
+  }
+});
+
 export const getFollowingPosts = (req, res, next) => {
   res.send('getFollowingPosts');
 };
@@ -129,8 +176,4 @@ export const getLikedPosts = (req, res, next) => {
 
 export const getUserPosts = (req, res, next) => {
   res.send('getUserPosts');
-};
-
-export const likeUnlikePost = (req, res, next) => {
-  res.send('likeUnlikePost');
 };
