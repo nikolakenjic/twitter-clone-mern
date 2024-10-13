@@ -43,7 +43,7 @@ export const createPost = catchAsync(async (req, res, next) => {
 });
 
 export const deletePost = catchAsync(async (req, res, next) => {
-  const postId = req.params.id;
+  const { postId } = req.params;
   const userId = req.user._id.toString();
 
   //   Find Post
@@ -91,6 +91,34 @@ export const getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
+export const commentOnPost = catchAsync(async (req, res, next) => {
+  const { text } = req.body;
+  const { postId } = req.params;
+  const userId = req.user._id;
+
+  if (!text) {
+    return next(
+      new AppError('Text field is required', StatusCodes.BAD_REQUEST)
+    );
+  }
+
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    return next(new AppError('Post Now Found', StatusCodes.NOT_FOUND));
+  }
+
+  const comment = { user: userId, text };
+
+  post.comments.push(comment);
+  await post.save();
+
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    post,
+  });
+});
+
 export const getFollowingPosts = (req, res, next) => {
   res.send('getFollowingPosts');
 };
@@ -105,8 +133,4 @@ export const getUserPosts = (req, res, next) => {
 
 export const likeUnlikePost = (req, res, next) => {
   res.send('likeUnlikePost');
-};
-
-export const commentOnPost = (req, res, next) => {
-  res.send('commentOnPost');
 };
