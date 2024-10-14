@@ -7,6 +7,8 @@ import { MdOutlineMail } from 'react-icons/md';
 import { FaUser } from 'react-icons/fa';
 import { MdPassword } from 'react-icons/md';
 import { MdDriveFileRenameOutline } from 'react-icons/md';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -16,8 +18,37 @@ const SignUpPage = () => {
     password: '',
   });
 
+  const queryClient = useQueryClient();
+
+  // Use Query to send data
+  const { mutate } = useMutation({
+    mutationFn: async ({ email, username, fullName, password }) => {
+      try {
+        const res = await fetch('/api/v1/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, username, fullName, password }),
+        });
+
+        const data = await res.json();
+        console.log(data);
+        return data;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Created profile successfully');
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    mutate(formData);
     console.log(formData);
   };
 
