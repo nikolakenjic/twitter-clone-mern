@@ -5,6 +5,9 @@ import { IoNotifications } from 'react-icons/io5';
 import { FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { BiLogOut } from 'react-icons/bi';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import fetchUrl from '../../utils/axios';
 
 const Sidebar = () => {
   const data = {
@@ -12,6 +15,38 @@ const Sidebar = () => {
     username: 'johndoe',
     profileImg: '/avatars/boy1.png',
   };
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: logoutMutation,
+    isError,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: async () => {
+      try {
+        const { data, status } = await fetchUrl.get('/auth/logout');
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message || 'Failed to logout'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Logout successfully');
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
+    },
+    onError: () => {
+      toast.error('Logout failed');
+    },
+  });
 
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-52">
@@ -66,7 +101,13 @@ const Sidebar = () => {
                 </p>
                 <p className="text-slate-500 text-sm">@{data?.username}</p>
               </div>
-              <BiLogOut className="w-5 h-5 cursor-pointer" />
+              <BiLogOut
+                className="w-5 h-5 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  logoutMutation();
+                }}
+              />
             </div>
           </Link>
         )}

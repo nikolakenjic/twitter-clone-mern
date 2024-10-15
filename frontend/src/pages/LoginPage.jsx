@@ -17,8 +17,13 @@ const LoginPage = () => {
 
   const queryClient = useQueryClient();
 
-  // Use Mutation for signing up
-  const { mutate, isError, isPending, error } = useMutation({
+  // Use Mutation for Login
+  const {
+    mutate: loginMutation,
+    isError,
+    isPending,
+    error,
+  } = useMutation({
     mutationFn: async ({ email, password }) => {
       try {
         const { data, status } = await fetchUrl.post('/auth/login', {
@@ -50,8 +55,7 @@ const LoginPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutate(formData);
-    console.log(formData);
+    loginMutation(formData);
   };
 
   const handleInputChange = (e) => {

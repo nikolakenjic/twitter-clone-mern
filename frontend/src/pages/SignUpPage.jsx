@@ -23,7 +23,12 @@ const SignUpPage = () => {
   const queryClient = useQueryClient();
 
   // Use Mutation for signing up
-  const { mutate, isError, isPending, error } = useMutation({
+  const {
+    mutate: signUpMutation,
+    isError,
+    isPending,
+    error,
+  } = useMutation({
     mutationFn: async ({ email, username, fullName, password }) => {
       try {
         const { data, status } = await fetchUrl.post('/auth/signup', {
@@ -57,7 +62,7 @@ const SignUpPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutate(formData);
+    signUpMutation(formData);
   };
 
   const handleInputChange = (e) => {
