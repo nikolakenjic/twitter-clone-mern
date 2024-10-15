@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import fetchUrl from '../utils/axios';
+import toast from 'react-hot-toast';
 
 import XSvg from './../assets/svgs/X';
 
@@ -8,20 +11,52 @@ import { MdPassword } from 'react-icons/md';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: '',
+  });
+
+  const queryClient = useQueryClient();
+
+  // Use Mutation for signing up
+  const { mutate, isError, isPending, error } = useMutation({
+    mutationFn: async ({ email, password }) => {
+      try {
+        const { data, status } = await fetchUrl.post('/auth/login', {
+          email,
+          password,
+        });
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message || 'Failed to create account'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Login successfully');
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
+    },
+    onError: (err) => {
+      const errorMessage = err.response?.data?.message || err.message;
+      toast.error(`Something went wrong! ${errorMessage}`);
+    },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    mutate(formData);
     console.log(formData);
   };
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const isError = false;
 
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen">
@@ -35,12 +70,12 @@ const LoginPage = () => {
           <label className="input input-bordered rounded flex items-center gap-2">
             <MdOutlineMail />
             <input
-              type="text"
+              type="email"
               className="grow"
-              placeholder="username"
-              name="username"
+              placeholder="Email"
+              name="email"
               onChange={handleInputChange}
-              value={formData.username}
+              value={formData.email}
             />
           </label>
 
@@ -56,9 +91,16 @@ const LoginPage = () => {
             />
           </label>
           <button className="btn rounded-full btn-primary text-white">
-            Login
+            {isPending ? 'Loading...' : 'Login'}
           </button>
-          {isError && <p className="text-red-500">Something went wrong</p>}
+
+          {isError && (
+            <p className="text-red-500">
+              {error?.response?.data?.message ||
+                error?.message ||
+                'An unexpected error occurred'}
+            </p>
+          )}
         </form>
         <div className="flex flex-col gap-2 mt-4">
           <p className="text-white text-lg">{"Don't"} have an account?</p>
