@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
+import fetchUrl from '../utils/axios';
 import XSvg from './../assets/svgs/X';
 
 import { MdOutlineMail } from 'react-icons/md';
@@ -24,16 +25,13 @@ const SignUpPage = () => {
   const { mutate } = useMutation({
     mutationFn: async ({ email, username, fullName, password }) => {
       try {
-        const res = await fetch('/api/v1/auth/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, username, fullName, password }),
+        const { data } = await fetchUrl.post('/auth/signup', {
+          email,
+          username,
+          fullName,
+          password,
         });
 
-        const data = await res.json();
-        console.log(data);
         return data;
       } catch (err) {
         console.error(err);
