@@ -24,15 +24,25 @@ const App = () => {
 
         if (status !== 200) {
           throw new Error(
-            data.error?.response?.data?.message || 'Failed to logout'
+            data.error?.response?.data?.message ||
+              'Failed to fetch authentication status'
           );
         }
 
         return data;
-      } catch (error) {
-        throw err;
+      } catch (err) {
+        if (err.response && err.response.data) {
+          console.error(
+            'Error response:',
+            err.response.data.message || err.response.data
+          );
+        } else {
+          console.error('Error:', err.message);
+        }
+        return null;
       }
     },
+    retry: false,
   });
 
   const userAuthentication = authUser?.status === 'success';
