@@ -1,4 +1,8 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from 'react-router-dom';
 
 import RootLayout from './components/home/RootLayout';
 import HomePage from './pages/HomePage';
@@ -24,7 +28,6 @@ const App = () => {
           );
         }
 
-        console.log('auth user is here', data);
         return data;
       } catch (error) {
         throw err;
@@ -32,17 +35,42 @@ const App = () => {
     },
   });
 
+  const userAuthentication = authUser?.status === 'success';
+
   const router = createBrowserRouter([
     {
       path: '/',
       element: <RootLayout />,
       errorElement: <ErrorPage />,
       children: [
-        { path: '/', element: <HomePage /> },
-        { path: '/signup', element: <SignUpPage /> },
-        { path: '/login', element: <LoginPage /> },
-        { path: '/notifications', element: <NotificationPage /> },
-        { path: '/profile/:username', element: <ProfilePage /> },
+        {
+          path: '/',
+          element: userAuthentication ? <HomePage /> : <Navigate to="/login" />,
+        },
+        {
+          path: '/signup',
+          element: !userAuthentication ? <SignUpPage /> : <Navigate to="/" />,
+        },
+        {
+          path: '/login',
+          element: !userAuthentication ? <LoginPage /> : <Navigate to="/" />,
+        },
+        {
+          path: '/notifications',
+          element: userAuthentication ? (
+            <NotificationPage />
+          ) : (
+            <Navigate to="/login" />
+          ),
+        },
+        {
+          path: '/profile/:username',
+          element: userAuthentication ? (
+            <ProfilePage />
+          ) : (
+            <Navigate to="/login" />
+          ),
+        },
       ],
     },
   ]);
