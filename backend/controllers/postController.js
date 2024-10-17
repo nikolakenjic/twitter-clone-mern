@@ -35,7 +35,7 @@ export const createPost = catchAsync(async (req, res, next) => {
 
   await newPost.save();
 
-  res.status(StatusCodes.OK).json({
+  res.status(StatusCodes.CREATED).json({
     status: 'success',
     data: {
       post: newPost,

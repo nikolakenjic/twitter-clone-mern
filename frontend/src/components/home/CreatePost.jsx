@@ -2,6 +2,9 @@ import { CiImageOn } from 'react-icons/ci';
 import { BsEmojiSmileFill } from 'react-icons/bs';
 import { useRef, useState } from 'react';
 import { IoCloseSharp } from 'react-icons/io5';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import fetchUrl from '../../utils/axios';
+import toast from 'react-hot-toast';
 
 const CreatePost = () => {
   const [text, setText] = useState('');
@@ -9,8 +12,41 @@ const CreatePost = () => {
 
   const imgRef = useRef(null);
 
-  const isPending = false;
-  const isError = false;
+  const queryCLient = useQueryClient();
+
+  const {
+    mutate: createPost,
+    isPending,
+    isError,
+    error,
+  } = useMutation({
+    mutationFn: async ({ text, img }) => {
+      try {
+        const { data, status } = await fetchUrl.post('/posts/create', {
+          text,
+          img,
+        });
+        console.log(status);
+
+        if (status !== 201) {
+          throw new Error(
+            data.error?.response?.data?.message || 'Failed to create account'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      setText('');
+      setImg(null);
+      toast.success('Post created successfully');
+      queryCLient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
 
   const data = {
     profileImg: '/avatars/boy1.png',
@@ -18,7 +54,7 @@ const CreatePost = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('Post created successfully');
+    createPost({ text, img });
   };
 
   const handleImgChange = (e) => {

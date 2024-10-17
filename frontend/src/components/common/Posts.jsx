@@ -49,7 +49,6 @@ const Posts = ({ feedType, username, userId }) => {
   }, [feedType, refetch, username]);
 
   const { status, posts } = data || {};
-  console.log(posts);
 
   return (
     <>

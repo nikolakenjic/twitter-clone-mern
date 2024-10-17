@@ -43,7 +43,7 @@ const SignUpPage = () => {
             data.error?.response?.data?.message || 'Failed to create account'
           );
         }
-        console.log(data);
+
         return data;
       } catch (err) {
         console.log('Error 💥', err.response?.data?.message || err.message);
