@@ -1,24 +1,58 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { FaRegComment } from 'react-icons/fa';
 import { BiRepost } from 'react-icons/bi';
 import { FaRegHeart } from 'react-icons/fa';
 import { FaRegBookmark } from 'react-icons/fa6';
 import { FaTrash } from 'react-icons/fa';
+import fetchUrl from '../../utils/axios';
+import toast from 'react-hot-toast';
 
 const Post = ({ post }) => {
+  const queryClient = useQueryClient();
+
+  const { data } = useQuery({ queryKey: ['authUser'] });
+  const authUser = data.data;
+
   const [comment, setComment] = useState('');
   const postOwner = post.user;
   const isLiked = false;
 
-  const isMyPost = true;
+  const isMyPost = authUser._id === post.user._id;
 
   const formattedDate = '1h';
 
   const isCommenting = false;
 
-  const handleDeletePost = () => {};
+  const { mutate: deletePost, isPending: isDeleting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const { data, status } = await fetchUrl.delete(`/posts/${post._id}`);
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message ||
+              'Failed to fetch authentication status'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Post deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
+
+  const handleDeletePost = () => {
+    deletePost();
+  };
 
   const handlePostComment = (e) => {
     e.preventDefault();
