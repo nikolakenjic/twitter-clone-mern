@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import fetchUrl from '../../utils/axios';
 
 import { FaRegComment } from 'react-icons/fa';
 import { BiRepost } from 'react-icons/bi';
 import { FaRegHeart } from 'react-icons/fa';
 import { FaRegBookmark } from 'react-icons/fa6';
 import { FaTrash } from 'react-icons/fa';
-import fetchUrl from '../../utils/axios';
-import toast from 'react-hot-toast';
 
 const Post = ({ post }) => {
   const queryClient = useQueryClient();
@@ -85,10 +85,14 @@ const Post = ({ post }) => {
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                <FaTrash
-                  className="cursor-pointer hover:text-red-500"
-                  onClick={handleDeletePost}
-                />
+                {!isDeleting && (
+                  <FaTrash
+                    className="cursor-pointer hover:text-red-500"
+                    onClick={handleDeletePost}
+                  />
+                )}
+
+                {isDeleting && <LoadingSpinner size="sm" />}
               </span>
             )}
           </div>
