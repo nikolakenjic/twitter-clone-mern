@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import fetchUrl from '../../utils/axios';
 
+import LoadingSpinner from './LoadingSpinner';
 import { FaRegComment } from 'react-icons/fa';
 import { BiRepost } from 'react-icons/bi';
 import { FaRegHeart } from 'react-icons/fa';

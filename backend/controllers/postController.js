@@ -212,7 +212,7 @@ export const getFollowingPosts = catchAsync(async (req, res, next) => {
       select: '-password',
     });
 
-  res.status(StatusCodes.OK).json({ status: 'success', feedPosts });
+  res.status(StatusCodes.OK).json({ status: 'success', posts: feedPosts });
 });
 
 export const getUserPosts = catchAsync(async (req, res, next) => {
