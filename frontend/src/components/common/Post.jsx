@@ -10,8 +10,10 @@ import { BiRepost } from 'react-icons/bi';
 import { FaRegHeart } from 'react-icons/fa';
 import { FaRegBookmark } from 'react-icons/fa6';
 import { FaTrash } from 'react-icons/fa';
+import { formatPostDate } from '../../utils/date/dateFormat';
 
 const Post = ({ post }) => {
+  //   const dialogRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data } = useQuery({ queryKey: ['authUser'] });
@@ -23,7 +25,7 @@ const Post = ({ post }) => {
 
   const isMyPost = authUser._id === post.user._id;
 
-  const formattedDate = '1h';
+  const formattedDate = formatPostDate(post.createdAt);
 
   //   Delete POST ************************************************************************************************
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
@@ -118,23 +120,12 @@ const Post = ({ post }) => {
         throw err;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
+      console.log();
       toast.success('You are successfully commenting this post');
       setComment('');
-      //   queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.setQueryData(['posts'], (prevData) => {
-        if (!prevData) return;
 
-        return {
-          ...prevData,
-          posts: prevData.posts.map((p) => {
-            if (p._id === post._id) {
-              return { ...p, comments: data.updateComments };
-            }
-            return p;
-          }),
-        };
-      });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error) => {
       toast.error(error.message);
@@ -220,6 +211,7 @@ const Post = ({ post }) => {
               {/* We're using Modal Component from DaisyUI */}
               <dialog
                 id={`comments_modal${post._id}`}
+                // ref={dialogRef}
                 className="modal border-none outline-none"
               >
                 <div className="modal-box rounded border border-gray-600">
@@ -231,7 +223,7 @@ const Post = ({ post }) => {
                       </p>
                     )}
                     {post.comments.map((comment) => {
-                      console.log(comment);
+                      //   console.log('comment', comment);
                       return (
                         <div
                           key={comment._id}
