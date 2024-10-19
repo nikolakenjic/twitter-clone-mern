@@ -19,14 +19,13 @@ const Post = ({ post }) => {
 
   const [comment, setComment] = useState('');
   const postOwner = post.user;
-  const isLiked = false;
+  const isLiked = post.likes.includes(authUser._id) || false;
 
   const isMyPost = authUser._id === post.user._id;
 
   const formattedDate = '1h';
 
-  const isCommenting = false;
-
+  //   Delete POST ************************************************************************************************
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
       try {
@@ -51,6 +50,7 @@ const Post = ({ post }) => {
     },
   });
 
+  //   Like/Unlike Post **************************************************************************************
   const { mutate: likePost, isPending: isLiking } = useMutation({
     mutationFn: async () => {
       try {
@@ -73,7 +73,6 @@ const Post = ({ post }) => {
       toast.success(message);
       // / this is not the best UX, bc it will refetch all posts
       // queryClient.invalidateQueries({ queryKey: ["posts"] });
-      console.log('UpdateLikes', updateLikes);
 
       // instead, update the cache directly for that post
       queryClient.setQueryData(['posts'], (prevData) => {
@@ -95,16 +94,66 @@ const Post = ({ post }) => {
     },
   });
 
+  //   Comment on POST *************************************************************************************
+  const { mutate: commentOnPost, isPending: isCommenting } = useMutation({
+    mutationFn: async (newComment) => {
+      try {
+        const { data, status } = await fetchUrl.post(
+          `posts/comment/${post._id}`,
+          {
+            text: newComment,
+          }
+        );
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message ||
+              'Failed to fetch authentication status'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+    onSuccess: (data) => {
+      toast.success('You are successfully commenting this post');
+      setComment('');
+      //   queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.setQueryData(['posts'], (prevData) => {
+        if (!prevData) return;
+
+        return {
+          ...prevData,
+          posts: prevData.posts.map((p) => {
+            if (p._id === post._id) {
+              return { ...p, comments: data.updateComments };
+            }
+            return p;
+          }),
+        };
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const handleDeletePost = () => {
     deletePost();
   };
 
   const handleLikePost = () => {
+    if (isLiking) return;
     likePost();
   };
 
   const handlePostComment = (e) => {
+    if (isCommenting) return;
     e.preventDefault();
+    commentOnPost(comment);
   };
 
   return (
@@ -181,31 +230,37 @@ const Post = ({ post }) => {
                         No comments yet 🤔 Be the first one 😉
                       </p>
                     )}
-                    {post.comments.map((comment) => (
-                      <div key={comment._id} className="flex gap-2 items-start">
-                        <div className="avatar">
-                          <div className="w-8 rounded-full">
-                            <img
-                              src={
-                                comment.user.profileImg ||
-                                '/avatar-placeholder.png'
-                              }
-                            />
+                    {post.comments.map((comment) => {
+                      console.log(comment);
+                      return (
+                        <div
+                          key={comment._id}
+                          className="flex gap-2 items-start"
+                        >
+                          <div className="avatar">
+                            <div className="w-8 rounded-full">
+                              <img
+                                src={
+                                  comment.user.profileImg ||
+                                  '/avatar-placeholder.png'
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold">
+                                {comment.user.fullName}
+                              </span>
+                              <span className="text-gray-700 text-sm">
+                                @{comment.user.username}
+                              </span>
+                            </div>
+                            <div className="text-sm">{comment.text}</div>
                           </div>
                         </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1">
-                            <span className="font-bold">
-                              {comment.user.fullName}
-                            </span>
-                            <span className="text-gray-700 text-sm">
-                              @{comment.user.username}
-                            </span>
-                          </div>
-                          <div className="text-sm">{comment.text}</div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <form
                     className="flex gap-2 items-center mt-4 border-t border-gray-600 pt-2"
@@ -218,11 +273,7 @@ const Post = ({ post }) => {
                       onChange={(e) => setComment(e.target.value)}
                     />
                     <button className="btn btn-primary rounded-full btn-sm text-white px-4">
-                      {isCommenting ? (
-                        <span className="loading loading-spinner loading-md"></span>
-                      ) : (
-                        'Post'
-                      )}
+                      {isCommenting ? <LoadingSpinner size="sm" /> : 'Post'}
                     </button>
                   </form>
                 </div>

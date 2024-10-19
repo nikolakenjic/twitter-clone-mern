@@ -79,8 +79,11 @@ export const deletePost = catchAsync(async (req, res, next) => {
 export const getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
-    .populate({ path: 'user', select: '-password' }); //this mean show user data in post.user
-  // Also have to create user.data on comments but that later
+    .populate({ path: 'user', select: '-password' })
+    .populate({
+      path: 'comments.user',
+      select: '-password',
+    });
 
   if (posts.length === 0) {
     return next(new AppError('There are no posts yet', StatusCodes.NOT_FOUND));
@@ -114,9 +117,11 @@ export const commentOnPost = catchAsync(async (req, res, next) => {
   post.comments.push(comment);
   await post.save();
 
+  const updateComments = post.comments;
+
   res.status(StatusCodes.OK).json({
     status: 'success',
-    post,
+    updateComments,
   });
 });
 
