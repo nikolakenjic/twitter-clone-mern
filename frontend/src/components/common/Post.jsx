@@ -51,15 +51,61 @@ const Post = ({ post }) => {
     },
   });
 
+  const { mutate: likePost, isPending: isLiking } = useMutation({
+    mutationFn: async () => {
+      try {
+        const { data, status } = await fetchUrl.post(`/posts/like/${post._id}`);
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message ||
+              'Failed to fetch authentication status'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+    onSuccess: ({ message, updateLikes }) => {
+      toast.success(message);
+      // / this is not the best UX, bc it will refetch all posts
+      // queryClient.invalidateQueries({ queryKey: ["posts"] });
+      console.log('UpdateLikes', updateLikes);
+
+      // instead, update the cache directly for that post
+      queryClient.setQueryData(['posts'], (prevData) => {
+        if (!prevData) return;
+
+        return {
+          ...prevData,
+          posts: prevData.posts.map((p) => {
+            if (p._id === post._id) {
+              return { ...p, likes: updateLikes };
+            }
+            return p;
+          }),
+        };
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const handleDeletePost = () => {
     deletePost();
+  };
+
+  const handleLikePost = () => {
+    likePost();
   };
 
   const handlePostComment = (e) => {
     e.preventDefault();
   };
-
-  const handleLikePost = () => {};
 
   return (
     <>
