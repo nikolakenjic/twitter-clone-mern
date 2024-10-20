@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import fetchUrl from '../utils/axios';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 import { IoSettingsOutline } from 'react-icons/io5';
@@ -6,27 +9,51 @@ import { FaUser } from 'react-icons/fa';
 import { FaHeart } from 'react-icons/fa6';
 
 const NotificationPage = () => {
-  const isLoading = false;
-  const notifications = [
-    {
-      _id: '1',
-      from: {
-        _id: '1',
-        username: 'johndoe',
-        profileImg: '/avatars/boy2.png',
-      },
-      type: 'follow',
+  const queryClient = useQueryClient();
+
+  const { data, isPending: isLoading } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      try {
+        const { data, status } = await fetchUrl.get('/notifications');
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message || 'Failed to create account'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
     },
-    {
-      _id: '2',
-      from: {
-        _id: '2',
-        username: 'janedoe',
-        profileImg: '/avatars/girl1.png',
-      },
-      type: 'like',
-    },
-  ];
+  });
+
+  const { notifications } = data;
+
+  //   const isLoading = false;
+  //   const notifications = [
+  //     {
+  //       _id: '1',
+  //       from: {
+  //         _id: '1',
+  //         username: 'johndoe',
+  //         profileImg: '/avatars/boy2.png',
+  //       },
+  //       type: 'follow',
+  //     },
+  //     {
+  //       _id: '2',
+  //       from: {
+  //         _id: '2',
+  //         username: 'janedoe',
+  //         profileImg: '/avatars/girl1.png',
+  //       },
+  //       type: 'like',
+  //     },
+  //   ];
 
   const deleteNotifications = () => {
     alert('All notifications deleted');
