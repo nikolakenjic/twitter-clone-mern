@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import fetchUrl from '../utils/axios';
+import useFollow from '../hooks/useFollow';
 import { formatMemberSinceDate } from '../utils/date/dateFormat';
 
 import { POSTS } from '../utils/db/dummyData';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import Posts from '../components/common/Posts';
 import EditProfileModal from '../components/profile/EditProfileModal';
 import ProfileHeaderSkeleton from '../components/skeletons/ProfileHeaderSkeleton';
@@ -16,6 +18,7 @@ import { MdEdit } from 'react-icons/md';
 
 const ProfilePage = () => {
   const { username } = useParams();
+  const { follow, isPending: isFollowPending } = useFollow();
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState('posts');
@@ -23,7 +26,7 @@ const ProfilePage = () => {
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isMyProfile = true;
+  const { data: authUser } = useQuery({ queryKey: ['authUser'] });
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['userProfile', username],
@@ -52,6 +55,9 @@ const ProfilePage = () => {
   useEffect(() => {
     refetch();
   }, [username, refetch]);
+
+  const isMyProfile = authUser?.data?._id === user?._id;
+  const amIFollowing = authUser?.data?.following.includes(user?._id);
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -143,9 +149,11 @@ const ProfilePage = () => {
                 {!isMyProfile && (
                   <button
                     className="btn btn-outline rounded-full btn-sm"
-                    onClick={() => alert('Followed successfully')}
+                    onClick={() => follow(user?._id)}
                   >
-                    Follow
+                    {isFollowPending && <LoadingSpinner size="sm" />}
+                    {!isFollowPending && amIFollowing && 'Unfollow'}
+                    {!isFollowPending && !amIFollowing && 'Follow'}
                   </button>
                 )}
                 {(coverImg || profileImg) && (
