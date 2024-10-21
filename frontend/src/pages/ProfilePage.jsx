@@ -145,15 +145,19 @@ const ProfilePage = () => {
                 </div>
               </div>
               <div className="flex justify-end px-4 mt-5">
-                {isMyProfile && <EditProfileModal />}
+                {isMyProfile && <EditProfileModal authUser={authUser?.data} />}
                 {!isMyProfile && (
                   <button
                     className="btn btn-outline rounded-full btn-sm"
                     onClick={() => follow(user?._id)}
                   >
-                    {isFollowPending && <LoadingSpinner size="sm" />}
-                    {!isFollowPending && amIFollowing && 'Unfollow'}
-                    {!isFollowPending && !amIFollowing && 'Follow'}
+                    {isFollowPending ? (
+                      <LoadingSpinner size="sm" />
+                    ) : amIFollowing ? (
+                      'Unfollow'
+                    ) : (
+                      'Follow'
+                    )}
                   </button>
                 )}
                 {(coverImg || profileImg) && (
