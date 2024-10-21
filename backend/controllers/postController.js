@@ -192,7 +192,7 @@ export const getLikedPosts = catchAsync(async (req, res, next) => {
       select: '-password',
     });
 
-  res.status(StatusCodes.OK).json({ status: 'success', likedPosts });
+  res.status(StatusCodes.OK).json({ status: 'success', posts: likedPosts });
 });
 
 export const getFollowingPosts = catchAsync(async (req, res, next) => {

@@ -1,9 +1,9 @@
-import Post from './Post';
-import PostSkeleton from '../skeletons/PostSkeleton';
-import { POSTS } from '../../utils/db/dummyData';
 import { useQuery } from '@tanstack/react-query';
 import fetchUrl from '../../utils/axios';
 import { useEffect } from 'react';
+
+import Post from './Post';
+import PostSkeleton from '../skeletons/PostSkeleton';
 
 const Posts = ({ feedType, username, userId }) => {
   const getEndPoint = () => {
