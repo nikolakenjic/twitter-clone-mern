@@ -19,9 +19,7 @@ export const getUserProfile = catchAsync(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     status: 'success',
-    data: {
-      user,
-    },
+    user,
   });
 });
 

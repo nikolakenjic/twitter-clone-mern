@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
 import { POSTS } from '../utils/db/dummyData';
 import Posts from '../components/common/Posts';
@@ -10,8 +10,11 @@ import { FaArrowLeft } from 'react-icons/fa6';
 import { IoCalendarOutline } from 'react-icons/io5';
 import { FaLink } from 'react-icons/fa';
 import { MdEdit } from 'react-icons/md';
+import { useQuery } from '@tanstack/react-query';
+import fetchUrl from '../utils/axios';
 
 const ProfilePage = () => {
+  const { username } = useParams();
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState('posts');
@@ -19,20 +22,47 @@ const ProfilePage = () => {
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isLoading = false;
   const isMyProfile = true;
 
-  const user = {
-    _id: '1',
-    fullName: 'John Doe',
-    username: 'johndoe',
-    profileImg: '/avatars/boy2.png',
-    coverImg: '/cover.png',
-    bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    link: 'https://youtube.com/@asaprogrammer_',
-    following: ['1', '2', '3'],
-    followers: ['1', '2', '3'],
-  };
+  const { data, isLoading, refetch, isRefetching } = useQuery({
+    queryKey: ['userProfile', username],
+    queryFn: async () => {
+      try {
+        const { data, status } = await fetchUrl.get(
+          `/users/profile/${username}`
+        );
+
+        if (status !== 200) {
+          throw new Error(
+            data.error?.response?.data?.message || 'Failed to create account'
+          );
+        }
+
+        return data;
+      } catch (err) {
+        console.log('Error 💥', err.response?.data?.message || err.message);
+        throw err;
+      }
+    },
+  });
+
+  const user = data?.user;
+
+  useEffect(() => {
+    refetch();
+  }, [username, refetch]);
+
+  // const user = {
+  //   _id: '1',
+  //   fullName: 'John Doe',
+  //   username: 'johndoe',
+  //   profileImg: '/avatars/boy2.png',
+  //   coverImg: '/cover.png',
+  //   bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+  //   link: 'https://youtube.com/@asaprogrammer_',
+  //   following: ['1', '2', '3'],
+  //   followers: ['1', '2', '3'],
+  // };
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -50,12 +80,12 @@ const ProfilePage = () => {
     <>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
         {/* HEADER */}
-        {isLoading && <ProfileHeaderSkeleton />}
-        {!isLoading && !user && (
+        {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+        {!isLoading && !isRefetching && !user && (
           <p className="text-center text-lg mt-4">User not found</p>
         )}
         <div className="flex flex-col">
-          {!isLoading && user && (
+          {!isLoading && !isRefetching && user && (
             <>
               <div className="flex gap-10 px-4 py-2 items-center">
                 <Link to="/">
@@ -64,7 +94,7 @@ const ProfilePage = () => {
                 <div className="flex flex-col">
                   <p className="font-bold text-lg">{user?.fullName}</p>
                   <span className="text-sm text-slate-500">
-                    {POSTS?.length} posts
+                    {/* {POSTS?.length} posts */}
                   </span>
                 </div>
               </div>
