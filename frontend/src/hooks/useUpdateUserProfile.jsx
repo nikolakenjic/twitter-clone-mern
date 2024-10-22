@@ -7,7 +7,6 @@ const useUpdateUserProfile = () => {
 
   const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
     mutationFn: async (formData) => {
-      console.log(formData);
       try {
         const { data, status } = await fetchUrl.post('/users/update', {
           ...formData,
