@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import fetchUrl from '../utils/axios';
 import useFollow from '../hooks/useFollow';
 import { formatMemberSinceDate } from '../utils/date/dateFormat';
+import useUpdateUserProfile from '../hooks/useUpdateUserProfile';
 
 import { POSTS } from '../utils/db/dummyData';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -51,6 +52,7 @@ const ProfilePage = () => {
   });
 
   const user = data?.user;
+  const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
 
   useEffect(() => {
     refetch();
@@ -163,9 +165,15 @@ const ProfilePage = () => {
                 {(coverImg || profileImg) && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => alert('Profile updated successfully')}
+                    onClick={async () => {
+                      {
+                        await updateProfile({ coverImg, profileImg });
+                        setProfileImg(null);
+                        setCoverImg(null);
+                      }
+                    }}
                   >
-                    Update
+                    {isUpdatingProfile ? 'Updating...' : 'Update'}
                   </button>
                 )}
               </div>

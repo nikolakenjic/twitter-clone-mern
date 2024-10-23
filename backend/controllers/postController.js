@@ -6,7 +6,8 @@ import Post from '../models/postModel.js';
 import Notification from '../models/notificationModel.js';
 
 export const createPost = catchAsync(async (req, res, next) => {
-  const { text, img } = req.body;
+  const { text } = req.body;
+  let { img } = req.body;
   const userId = req.user._id.toString();
 
   //   find user ti send user data when create post
