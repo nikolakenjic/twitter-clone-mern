@@ -153,7 +153,7 @@ export const updateUser = catchAsync(async (req, res, next) => {
 
   // Profile and Cover img
 
-  console.log('userImg', user.profileImg.split('/').pop().split('.')[0]);
+  // console.log('userImg', user.profileImg.split('/').pop().split('.')[0]);
   if (profileImg) {
     if (user.profileImg) {
       await imageKit.deleteFile(user.profileImg.split('/').pop().split('.')[0]);
