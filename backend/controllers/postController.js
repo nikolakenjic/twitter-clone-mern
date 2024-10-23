@@ -4,7 +4,6 @@ import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import Post from '../models/postModel.js';
 import Notification from '../models/notificationModel.js';
-import ImageKit from 'imagekit';
 
 export const createPost = catchAsync(async (req, res, next) => {
   const { text, img } = req.body;
@@ -22,17 +21,10 @@ export const createPost = catchAsync(async (req, res, next) => {
       new AppError('Post must have text or image', StatusCodes.BAD_REQUEST)
     );
   }
-  // console.log(process.env.IMAGEKIT_PUBLIC_KEY);
-
-  const imageKit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
-  });
 
   // IMG **************************
   if (img) {
-    const uploadedResponse = await imageKit.upload({
+    const uploadedResponse = await req.imageKit.upload({
       file: img,
       fileName: `post_img_${userId}`, // Updated fileName to ensure uniqueness
     });

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import ImageKit from 'imagekit';
 
 import AppError from './utils/appError.js';
 import { errorGlobal } from './controllers/errorController.js';
@@ -22,6 +23,12 @@ dotenv.config({ path: path.resolve(__config, './../.env') });
 
 const app = express();
 
+const imageKit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+});
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -31,6 +38,11 @@ app.use(express.json({ limit: '5mb' })); // to parse req.body
 
 // Cookie Parser
 app.use(cookieParser());
+// ImageKIT
+app.use((req, res, next) => {
+  req.imageKit = imageKit;
+  next();
+});
 
 // Routes
 app.use('/api/v1/auth', authRouter);

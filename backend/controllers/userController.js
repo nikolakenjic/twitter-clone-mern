@@ -7,7 +7,6 @@ import {
   comparePasswords,
   hashedPassword,
 } from '../utils/passwordEncrypted.js';
-import ImageKit from 'imagekit';
 
 export const getUserProfile = catchAsync(async (req, res, next) => {
   const { username } = req.params;
@@ -145,21 +144,17 @@ export const updateUser = catchAsync(async (req, res, next) => {
     user.password = await hashedPassword(newPassword);
   }
 
-  const imageKit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
-  });
-
   // Profile and Cover img
 
   // console.log('userImg', user.profileImg.split('/').pop().split('.')[0]);
   if (profileImg) {
     if (user.profileImg) {
-      await imageKit.deleteFile(user.profileImg.split('/').pop().split('.')[0]);
+      await req.imageKit.deleteFile(
+        user.profileImg.split('/').pop().split('.')[0]
+      );
     }
 
-    const uploadedResponse = await imageKit.upload({
+    const uploadedResponse = await req.imageKit.upload({
       file: profileImg,
       fileName: `profile_img_${userId}`, // Updated fileName to ensure uniqueness
     });
@@ -169,10 +164,12 @@ export const updateUser = catchAsync(async (req, res, next) => {
   if (coverImg) {
     // Add logic for coverImg if needed
     if (user.coverImg) {
-      await imageKit.deleteFile(user.coverImg.split('/').pop().split('.')[0]);
+      await req.imageKit.deleteFile(
+        user.coverImg.split('/').pop().split('.')[0]
+      );
     }
 
-    const uploadedCoverResponse = await imageKit.upload({
+    const uploadedCoverResponse = await req.imageKit.upload({
       file: coverImg,
       fileName: `cover_img_${userId}`, // Updated fileName to ensure uniqueness
     });
