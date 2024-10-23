@@ -14,19 +14,19 @@ import userRouter from './routes/userRoutes.js';
 import postRouter from './routes/postRoutes.js';
 import notificationRouter from './routes/notificationRoutes.js';
 
-const app = express();
-
 // Get the current directory from the import.meta.url
 const __filename = fileURLToPath(import.meta.url);
 const __config = path.dirname(__filename);
 // Use path.resolve to construct the path to the .env file
 dotenv.config({ path: path.resolve(__config, './../.env') });
 
+const app = express();
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-app.use(express.json()); // to parse req.body
+app.use(express.json({ limit: '5mb' })); // to parse req.body
 // app.use(express.urlencoded({ extended: true })); // to parse form data(urlencoded)
 
 // Cookie Parser

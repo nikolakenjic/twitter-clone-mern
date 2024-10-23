@@ -7,6 +7,7 @@ import {
   comparePasswords,
   hashedPassword,
 } from '../utils/passwordEncrypted.js';
+import ImageKit from 'imagekit';
 
 export const getUserProfile = catchAsync(async (req, res, next) => {
   const { username } = req.params;
@@ -109,30 +110,21 @@ export const followUnfollowUser = catchAsync(async (req, res, next) => {
 });
 
 export const updateUser = catchAsync(async (req, res, next) => {
-  const {
-    fullName,
-    email,
-    username,
-    currentPassword,
-    newPassword,
-    bio,
-    link,
-    profileImg,
-    coverImg,
-  } = req.body;
+  const { fullName, email, username, currentPassword, newPassword, bio, link } =
+    req.body;
 
-  // let { profileImg, coverImg } = req.body;
+  let { profileImg, coverImg } = req.body;
 
   const userId = req.user._id;
 
-  //  Find User
+  // Find User
   let user = await User.findById(userId).select('+password');
 
   if (!user) {
     return next(new AppError('User Not Found', StatusCodes.NOT_FOUND));
   }
 
-  //   Check if password is there and finally update them
+  // Check if password is there and finally update them
   if (!newPassword && currentPassword) {
     return next(
       new AppError(
@@ -153,9 +145,39 @@ export const updateUser = catchAsync(async (req, res, next) => {
     user.password = await hashedPassword(newPassword);
   }
 
-  // Profile and Cover img i wil add later***********************************************
+  const imageKit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+  });
 
-  // ********************************************************************************************
+  // Profile and Cover img
+
+  console.log('userImg', user.profileImg.split('/').pop().split('.')[0]);
+  if (profileImg) {
+    if (user.profileImg) {
+      await imageKit.deleteFile(user.profileImg.split('/').pop().split('.')[0]);
+    }
+
+    const uploadedResponse = await imageKit.upload({
+      file: profileImg,
+      fileName: `profile_img_${userId}`, // Updated fileName to ensure uniqueness
+    });
+    profileImg = uploadedResponse.url;
+  }
+
+  if (coverImg) {
+    // Add logic for coverImg if needed
+    if (user.coverImg) {
+      await imageKit.deleteFile(user.coverImg.split('/').pop().split('.')[0]);
+    }
+
+    const uploadedCoverResponse = await imageKit.upload({
+      file: coverImg,
+      fileName: `cover_img_${userId}`, // Updated fileName to ensure uniqueness
+    });
+    coverImg = uploadedCoverResponse.url;
+  }
 
   user.fullName = fullName || user.fullName;
   user.email = email || user.email;
@@ -170,7 +192,7 @@ export const updateUser = catchAsync(async (req, res, next) => {
   // password should be null in response
   user.password = null;
 
-  //   Send response
+  // Send response
   res.status(StatusCodes.OK).json({
     status: 'success',
     data: {

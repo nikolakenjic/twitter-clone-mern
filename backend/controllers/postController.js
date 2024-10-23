@@ -21,6 +21,7 @@ export const createPost = catchAsync(async (req, res, next) => {
       new AppError('Post must have text or image', StatusCodes.BAD_REQUEST)
     );
   }
+  // console.log(process.env.IMAGEKIT_PUBLIC_KEY);
 
   if (img) {
     // For now just clg
