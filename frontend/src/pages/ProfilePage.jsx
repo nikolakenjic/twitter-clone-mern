@@ -53,7 +53,6 @@ const ProfilePage = () => {
 
   const user = data?.user;
   const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
-  console.log(user);
 
   useEffect(() => {
     refetch();

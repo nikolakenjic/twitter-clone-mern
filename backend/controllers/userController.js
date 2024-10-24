@@ -145,65 +145,58 @@ export const updateUser = catchAsync(async (req, res, next) => {
   }
 
   // Profile and Cover Image Handling
-  try {
-    // Update Profile Image
-    if (profileImg) {
-      if (user.profileImgFileId) {
-        await req.imageKit.deleteFile(user.profileImgFileId);
-      }
-
-      const uploadedResponse = await req.imageKit.upload({
-        file: profileImg,
-        fileName: `profile_img_${userId}`,
-      });
-
-      profileImg = uploadedResponse.url;
-      const profileImgFileId = uploadedResponse.fileId;
-      user.profileImgFileId = profileImgFileId;
+  // Update Profile Image
+  if (profileImg) {
+    if (user.profileImgFileId) {
+      await req.imageKit.deleteFile(user.profileImgFileId);
     }
 
-    // Update Cover Image
-    if (coverImg) {
-      if (user.coverImgFileId) {
-        await req.imageKit.deleteFile(user.coverImgFileId);
-      }
-
-      const uploadedCoverResponse = await req.imageKit.upload({
-        file: coverImg,
-        fileName: `cover_img_${userId}`,
-      });
-
-      coverImg = uploadedCoverResponse.url;
-      const coverImgFileId = uploadedCoverResponse.fileId;
-      user.coverImgFileId = coverImgFileId;
-    }
-
-    // Update other fields
-    user.fullName = fullName || user.fullName;
-    user.email = email || user.email;
-    user.username = username || user.username;
-    user.bio = bio || user.bio;
-    user.link = link || user.link;
-    user.profileImg = profileImg || user.profileImg;
-    user.coverImg = coverImg || user.coverImg;
-
-    // Save updated user details
-    user = await user.save();
-
-    // Remove password from response
-    user.password = null;
-
-    // Send success response
-    res.status(StatusCodes.OK).json({
-      status: 'success',
-      data: {
-        user,
-      },
+    const uploadedResponse = await req.imageKit.upload({
+      file: profileImg,
+      fileName: `profile_img_${userId}`,
     });
-  } catch (error) {
-    console.error('Error updating profile/cover image:', error);
-    return next(
-      new AppError('Image upload failed', StatusCodes.INTERNAL_SERVER_ERROR)
-    );
+
+    profileImg = uploadedResponse.url;
+    const profileImgFileId = uploadedResponse.fileId;
+    user.profileImgFileId = profileImgFileId;
   }
+
+  // Update Cover Image
+  if (coverImg) {
+    if (user.coverImgFileId) {
+      await req.imageKit.deleteFile(user.coverImgFileId);
+    }
+
+    const uploadedCoverResponse = await req.imageKit.upload({
+      file: coverImg,
+      fileName: `cover_img_${userId}`,
+    });
+
+    coverImg = uploadedCoverResponse.url;
+    const coverImgFileId = uploadedCoverResponse.fileId;
+    user.coverImgFileId = coverImgFileId;
+  }
+
+  // Update other fields
+  user.fullName = fullName || user.fullName;
+  user.email = email || user.email;
+  user.username = username || user.username;
+  user.bio = bio !== undefined ? bio : user.bio;
+  user.link = link !== undefined ? link : user.link;
+  user.profileImg = profileImg || user.profileImg;
+  user.coverImg = coverImg || user.coverImg;
+
+  // Save updated user details
+  user = await user.save();
+
+  // Remove password from response
+  user.password = null;
+
+  // Send success response
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
 });

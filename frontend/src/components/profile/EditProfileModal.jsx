@@ -47,9 +47,9 @@ const EditProfileModal = ({ authUser }) => {
           <h3 className="font-bold text-lg my-3">Update Profile</h3>
           <form
             className="flex flex-col gap-4"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              updateProfile(formData);
+              await updateProfile(formData);
             }}
           >
             <div className="flex flex-wrap gap-2">
