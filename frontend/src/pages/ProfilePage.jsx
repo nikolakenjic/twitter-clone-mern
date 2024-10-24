@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import fetchUrl from '../utils/axios';
 import useFollow from '../hooks/useFollow';
@@ -19,6 +19,7 @@ import { MdEdit } from 'react-icons/md';
 
 const ProfilePage = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
   const { follow, isPending: isFollowPending } = useFollow();
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
@@ -53,6 +54,12 @@ const ProfilePage = () => {
 
   const user = data?.user;
   const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
+
+  useEffect(() => {
+    if (authUser?.data?.username && authUser?.data?.username !== username) {
+      navigate(`/profile/${authUser.data.username}`, { replace: true });
+    }
+  }, [authUser, username, navigate]);
 
   useEffect(() => {
     refetch();
