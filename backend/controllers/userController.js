@@ -123,7 +123,7 @@ export const updateUser = catchAsync(async (req, res, next) => {
     return next(new AppError('User Not Found', StatusCodes.NOT_FOUND));
   }
 
-  // Check if password is there and finally update them
+  // Check if password is there and update them
   if (!newPassword && currentPassword) {
     return next(
       new AppError(
@@ -144,56 +144,66 @@ export const updateUser = catchAsync(async (req, res, next) => {
     user.password = await hashedPassword(newPassword);
   }
 
-  // Profile and Cover img
+  // Profile and Cover Image Handling
+  try {
+    // Update Profile Image
+    if (profileImg) {
+      if (user.profileImgFileId) {
+        await req.imageKit.deleteFile(user.profileImgFileId);
+      }
 
-  // console.log('userImg', user.profileImg.split('/').pop().split('.')[0]);
-  if (profileImg) {
-    if (user.profileImg) {
-      await req.imageKit.deleteFile(
-        user.profileImg.split('/').pop().split('.')[0]
-      );
+      const uploadedResponse = await req.imageKit.upload({
+        file: profileImg,
+        fileName: `profile_img_${userId}`,
+      });
+
+      profileImg = uploadedResponse.url;
+      const profileImgFileId = uploadedResponse.fileId;
+      user.profileImgFileId = profileImgFileId;
     }
 
-    const uploadedResponse = await req.imageKit.upload({
-      file: profileImg,
-      fileName: `profile_img_${userId}`, // Updated fileName to ensure uniqueness
-    });
-    profileImg = uploadedResponse.url;
-  }
+    // Update Cover Image
+    if (coverImg) {
+      if (user.coverImgFileId) {
+        await req.imageKit.deleteFile(user.coverImgFileId);
+      }
 
-  if (coverImg) {
-    // Add logic for coverImg if needed
-    if (user.coverImg) {
-      await req.imageKit.deleteFile(
-        user.coverImg.split('/').pop().split('.')[0]
-      );
+      const uploadedCoverResponse = await req.imageKit.upload({
+        file: coverImg,
+        fileName: `cover_img_${userId}`,
+      });
+
+      coverImg = uploadedCoverResponse.url;
+      const coverImgFileId = uploadedCoverResponse.fileId;
+      user.coverImgFileId = coverImgFileId;
     }
 
-    const uploadedCoverResponse = await req.imageKit.upload({
-      file: coverImg,
-      fileName: `cover_img_${userId}`, // Updated fileName to ensure uniqueness
+    // Update other fields
+    user.fullName = fullName || user.fullName;
+    user.email = email || user.email;
+    user.username = username || user.username;
+    user.bio = bio || user.bio;
+    user.link = link || user.link;
+    user.profileImg = profileImg || user.profileImg;
+    user.coverImg = coverImg || user.coverImg;
+
+    // Save updated user details
+    user = await user.save();
+
+    // Remove password from response
+    user.password = null;
+
+    // Send success response
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      data: {
+        user,
+      },
     });
-    coverImg = uploadedCoverResponse.url;
+  } catch (error) {
+    console.error('Error updating profile/cover image:', error);
+    return next(
+      new AppError('Image upload failed', StatusCodes.INTERNAL_SERVER_ERROR)
+    );
   }
-
-  user.fullName = fullName || user.fullName;
-  user.email = email || user.email;
-  user.username = username || user.username;
-  user.bio = bio || user.bio;
-  user.link = link || user.link;
-  user.profileImg = profileImg || user.profileImg;
-  user.coverImg = coverImg || user.coverImg;
-
-  user = await user.save();
-
-  // password should be null in response
-  user.password = null;
-
-  // Send response
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    data: {
-      user,
-    },
-  });
 });

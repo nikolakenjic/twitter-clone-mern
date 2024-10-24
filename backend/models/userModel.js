@@ -9,17 +9,17 @@ const userSchema = new mongoose.Schema(
     },
     fullName: {
       type: String,
-      required: [true, 'You have to provide a full name."'],
+      required: [true, 'You have to provide a full name.'],
     },
     password: {
       type: String,
-      required: [true, 'You have to provide a password."'],
+      required: [true, 'You have to provide a password.'],
       minLength: 6,
       select: false,
     },
     email: {
       type: String,
-      required: [true, 'You have to provide an email."'],
+      required: [true, 'You have to provide an email.'],
       unique: true,
     },
     followers: [
@@ -40,7 +40,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    profileImgFileId: {
+      type: String,
+      default: '',
+    },
     coverImg: {
+      type: String,
+      default: '',
+    },
+    coverImgFileId: {
       type: String,
       default: '',
     },
@@ -48,7 +56,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-
     link: {
       type: String,
       default: '',
