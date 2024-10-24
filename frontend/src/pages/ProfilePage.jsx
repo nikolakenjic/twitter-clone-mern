@@ -30,7 +30,7 @@ const ProfilePage = () => {
   const { data: authUser } = useQuery({ queryKey: ['authUser'] });
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['userProfile', username],
+    queryKey: ['userProfile'],
     queryFn: async () => {
       try {
         const { data, status } = await fetchUrl.get(

@@ -26,8 +26,11 @@ const useUpdateUserProfile = () => {
         }
       },
       onSuccess: ({ data }) => {
-        console.log(data);
         toast.success('Profile updated successfully');
+        if (data.user.username) {
+          window.location.href = `/profile/${data.user.username}`;
+        }
+
         Promise.all([
           queryClient.invalidateQueries({ queryKey: ['authUser'] }),
           queryClient.invalidateQueries({ queryKey: ['userProfile'] }),
