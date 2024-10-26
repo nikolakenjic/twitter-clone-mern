@@ -7,7 +7,7 @@ const DB = process.env.MONGODB_URL.replace(
 );
 
 // Start server
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   try {
