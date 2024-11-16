@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  deleteUserProfile,
   followUnfollowUser,
   getSuggestedUser,
   getUserProfile,
@@ -9,9 +10,12 @@ import { protectRoute } from '../middleware/protectRoute.js';
 
 const router = express.Router();
 
-router.route('/profile/:username').get(protectRoute, getUserProfile);
-router.route('/suggested').get(protectRoute, getSuggestedUser);
-router.route('/follow/:id').post(protectRoute, followUnfollowUser);
-router.route('/update').post(protectRoute, updateUser);
+router.use(protectRoute);
+
+router.route('/profile/:username').get(getUserProfile);
+router.route('/suggested').get(getSuggestedUser);
+router.route('/follow/:id').post(followUnfollowUser);
+router.route('/update').post(updateUser);
+router.route('/delete').delete(deleteUserProfile);
 
 export default router;

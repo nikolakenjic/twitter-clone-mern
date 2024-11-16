@@ -200,3 +200,25 @@ export const updateUser = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+// Delete User Profile
+export const deleteUserProfile = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  if (!userId) {
+    return next(
+      new AppError(
+        'You have to be login to delete user profile.',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  }
+
+  // Soft Delete
+  await User.delete({ _id: userId });
+
+  // Send success response
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    data: null,
+  });
+});

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import mongooseDelete from 'mongoose-delete';
 
 const userSchema = new mongoose.Schema(
   {
@@ -72,6 +73,9 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Soft delete
+userSchema.plugin(mongooseDelete, { overrideMethods: 'all', deletedAt: true });
 
 const User = mongoose.model('User', userSchema);
 
